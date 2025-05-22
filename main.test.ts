@@ -72,3 +72,66 @@ test("custom element with caps", () => {
 </div>
 `);
 });
+
+test("callout with default config without title generates no title or symbol", () => {
+  const md = instance({
+    calloutSymbolElementType: "div",
+    calloutSymbols: { info: "I" },
+  });
+  expect(
+    md.render(`> [!Info] 
+> Body line 1`)
+  ).toEqual(`<div class="callout callout-info">
+<p>Body line 1</p>
+</div>
+`);
+});
+
+test("callout with enableCalloutSymbolWithEmptyType set to no without title generates no title or symbol", () => {
+  const md = instance({
+    calloutSymbolElementType: "div",
+    calloutSymbols: { info: "I" },
+    enableCalloutSymbolWithEmptyType: "no",
+  });
+  expect(
+    md.render(`> [!Info] 
+> Body line 1`)
+  ).toEqual(`<div class="callout callout-info">
+<p>Body line 1</p>
+</div>
+`);
+});
+
+test("callout with enableCalloutSymbolWithEmptyType set to blank without title generates symbol", () => {
+  const md = instance({
+    calloutSymbolElementType: "div",
+    calloutTitleElementType: "div",
+    calloutSymbols: { info: "I" },
+    enableCalloutSymbolWithEmptyType: "blank",
+  });
+  expect(
+    md.render(`> [!Info] 
+> Body line 1`)
+  ).toEqual(`<div class="callout callout-info">
+<div class="callout-title"><div class="callout-symbol">I</div></div><p>Body line 1</p>
+</div>
+`);
+});
+
+test("callout with enableCalloutSymbolWithEmptyType set to callout-type without title generates title", () => {
+  const md = instance({
+    calloutSymbolElementType: "div",
+    calloutTitleElementType: "div",
+    calloutSymbols: { info: "I" },
+    enableCalloutSymbolWithEmptyType: "callout-type",
+  });
+  expect(
+    md.render(`> [!Info] 
+> Body line 1`)
+  ).toEqual(`<div class="callout callout-info">
+<div class="callout-title"><div class="callout-symbol">I</div>Info</div><p>Body line 1</p>
+</div>
+`);
+});
+
+

@@ -1,6 +1,24 @@
 import type MarkdownIt from "markdown-it/index.js";
 import type { StateCore, Token } from "markdown-it/index.js";
 
+/**
+ * How to handle a callout title and symbol if no custom callout title is specified:
+ * i.e
+ * > [!Info]
+ * > Callout text here
+ *
+ * Instead of 
+ * > [!Info] Title
+ * > Callout text here.
+ *
+ * - "no": do not render any title.
+ * - "blank": render a blank title (""). Renders the callout-title and callout-symbol containers,
+ *            so you can have a symbol even with no title.
+ * - "callout-type": render a title that matches the type of callout. An info callout will have an "Info" title,
+ *                   a note callout will have a "Note" title, etc.
+ */
+export type EnableCalloutSymbolOptions = "no" | "blank" | "callout-type";
+
 export interface Config {
   /**
    * The element that wraps the created callout. Defaults to "div"
@@ -26,6 +44,13 @@ export interface Config {
    * The element to wrap callout symbols in. Defaults to "span"
    */
   calloutSymbolElementType?: string;
+  /**
+   * One of the EnableCalloutSymbolOptions. Defaults to "no", where 
+   * no title is rendered.
+   * "blank" will render a symbol and a callout-title container but the title will be empty.
+   * "callout-title" will insert a title identical to the callout type.
+   */
+  enableCalloutSymbolWithEmptyType?: EnableCalloutSymbolOptions;
 }
 
 export default function (md: MarkdownIt, config: Config = {}) {
@@ -64,6 +89,7 @@ export default function (md: MarkdownIt, config: Config = {}) {
       closeToken.type = "callout_close";
       closeToken.tag = openToken.tag;
 
+
       if (title) {
         const titleTokens = createTitleTokens(
           state,
@@ -73,7 +99,31 @@ export default function (md: MarkdownIt, config: Config = {}) {
         );
         tokens.splice(openIdx + 1, 0, ...titleTokens);
       }
-
+      // If we don't have a title but we want to generate the callout symbol anyways,
+      // we just run createTitleTokens with an empty string. Is this hacky?
+      // Super.
+      else {
+        if (config.enableCalloutSymbolWithEmptyType === "blank") {
+          const titleTokens = createTitleTokens(
+            state,
+            config,
+            calloutType,
+            ""
+          );
+          tokens.splice(openIdx + 1, 0, ...titleTokens);
+        }
+        else if (config.enableCalloutSymbolWithEmptyType === "callout-type") {
+          // Returns the callout type as the title with the first letter capitalized.
+          const title = prettyFormatCalloutType(calloutType);
+          const titleTokens = createTitleTokens(
+            state,
+            config,
+            calloutType,
+            title,
+          );
+          tokens.splice(openIdx + 1, 0, ...titleTokens);
+        }
+      }
       inlineToken.content = remainingInlineContent;
     }
   });
@@ -186,3 +236,12 @@ function createTitleTokens(
 
   return titleTokens;
 }
+
+/* Takes a string and returns the same string with the first letter capitalized.
+ * Assumes that the input string is lowercase.
+ */
+function prettyFormatCalloutType(calloutType: string): string
+{
+  return calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
+}
+

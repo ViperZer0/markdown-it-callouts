@@ -11,13 +11,13 @@ import type { StateCore, Token } from "markdown-it/index.js";
  * > [!Info] Title
  * > Callout text here.
  *
- * - "no": do not render any title.
+ * - "none": (default) do not render any title.
  * - "blank": render a blank title (""). Renders the callout-title and callout-symbol containers,
  *            so you can have a symbol even with no title.
- * - "callout-type": render a title that matches the type of callout. An info callout will have an "Info" title,
+ * - "match-type": render a title that matches the type of callout. An info callout will have an "Info" title,
  *                   a note callout will have a "Note" title, etc.
  */
-export type EnableCalloutSymbolOptions = "no" | "blank" | "callout-type";
+export type EmptyTitleFallback = "none" | "blank" | "match-type";
 
 export interface Config {
   /**
@@ -45,12 +45,9 @@ export interface Config {
    */
   calloutSymbolElementType?: string;
   /**
-   * One of the EnableCalloutSymbolOptions. Defaults to "no", where
-   * no title is rendered.
-   * "blank" will render a symbol and a callout-title container but the title will be empty.
-   * "callout-title" will insert a title identical to the callout type.
+   * May be "none" (default), "empty", or "match-type", see EmptyTitleFallback for more
    */
-  enableCalloutSymbolWithEmptyType?: EnableCalloutSymbolOptions;
+  emptyTitleFallback?: EmptyTitleFallback;
 }
 
 export default function (md: MarkdownIt, config: Config = {}) {
@@ -89,34 +86,25 @@ export default function (md: MarkdownIt, config: Config = {}) {
       closeToken.type = "callout_close";
       closeToken.tag = openToken.tag;
 
-      if (title) {
+      const titleContents = title
+        ? title
+        : // Fallbacks for a missing title
+        config.emptyTitleFallback === "match-type"
+        ? prettyFormatCalloutType(calloutType)
+        : config.emptyTitleFallback === "blank"
+        ? ""
+        : null;
+
+      if (titleContents != null) {
         const titleTokens = createTitleTokens(
           state,
           config,
           calloutType,
-          title
+          titleContents
         );
         tokens.splice(openIdx + 1, 0, ...titleTokens);
       }
-      // If we don't have a title but we want to generate the callout symbol anyways,
-      // we just run createTitleTokens with an empty string. Is this hacky?
-      // Super.
-      else {
-        if (config.enableCalloutSymbolWithEmptyType === "blank") {
-          const titleTokens = createTitleTokens(state, config, calloutType, "");
-          tokens.splice(openIdx + 1, 0, ...titleTokens);
-        } else if (config.enableCalloutSymbolWithEmptyType === "callout-type") {
-          // Returns the callout type as the title with the first letter capitalized.
-          const title = prettyFormatCalloutType(calloutType);
-          const titleTokens = createTitleTokens(
-            state,
-            config,
-            calloutType,
-            title
-          );
-          tokens.splice(openIdx + 1, 0, ...titleTokens);
-        }
-      }
+
       inlineToken.content = remainingInlineContent;
     }
   });

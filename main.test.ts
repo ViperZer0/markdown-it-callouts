@@ -87,11 +87,11 @@ test("callout with default config without title generates no title or symbol", (
 `);
 });
 
-test("callout with enableCalloutSymbolWithEmptyType set to no without title generates no title or symbol", () => {
+test("callout with enableCalloutSymbolWithEmptyType set to none without title generates no title or symbol", () => {
   const md = instance({
     calloutSymbolElementType: "div",
     calloutSymbols: { info: "I" },
-    enableCalloutSymbolWithEmptyType: "no",
+    emptyTitleFallback: "none",
   });
   expect(
     md.render(`> [!Info] 
@@ -107,7 +107,7 @@ test("callout with enableCalloutSymbolWithEmptyType set to blank without title g
     calloutSymbolElementType: "div",
     calloutTitleElementType: "div",
     calloutSymbols: { info: "I" },
-    enableCalloutSymbolWithEmptyType: "blank",
+    emptyTitleFallback: "blank",
   });
   expect(
     md.render(`> [!Info] 
@@ -118,12 +118,12 @@ test("callout with enableCalloutSymbolWithEmptyType set to blank without title g
 `);
 });
 
-test("callout with enableCalloutSymbolWithEmptyType set to callout-type without title generates title", () => {
+test("callout with enableCalloutSymbolWithEmptyType set to match-type without title generates title", () => {
   const md = instance({
     calloutSymbolElementType: "div",
     calloutTitleElementType: "div",
     calloutSymbols: { info: "I" },
-    enableCalloutSymbolWithEmptyType: "callout-type",
+    emptyTitleFallback: "match-type",
   });
   expect(
     md.render(`> [!Info] 

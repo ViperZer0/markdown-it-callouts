@@ -133,5 +133,3 @@ test("callout with enableCalloutSymbolWithEmptyType set to callout-type without 
 </div>
 `);
 });
-
-

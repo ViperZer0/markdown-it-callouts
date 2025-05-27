@@ -7,7 +7,7 @@ import type { StateCore, Token } from "markdown-it/index.js";
  * > [!Info]
  * > Callout text here
  *
- * Instead of 
+ * Instead of
  * > [!Info] Title
  * > Callout text here.
  *
@@ -45,7 +45,7 @@ export interface Config {
    */
   calloutSymbolElementType?: string;
   /**
-   * One of the EnableCalloutSymbolOptions. Defaults to "no", where 
+   * One of the EnableCalloutSymbolOptions. Defaults to "no", where
    * no title is rendered.
    * "blank" will render a symbol and a callout-title container but the title will be empty.
    * "callout-title" will insert a title identical to the callout type.
@@ -89,7 +89,6 @@ export default function (md: MarkdownIt, config: Config = {}) {
       closeToken.type = "callout_close";
       closeToken.tag = openToken.tag;
 
-
       if (title) {
         const titleTokens = createTitleTokens(
           state,
@@ -104,22 +103,16 @@ export default function (md: MarkdownIt, config: Config = {}) {
       // Super.
       else {
         if (config.enableCalloutSymbolWithEmptyType === "blank") {
-          const titleTokens = createTitleTokens(
-            state,
-            config,
-            calloutType,
-            ""
-          );
+          const titleTokens = createTitleTokens(state, config, calloutType, "");
           tokens.splice(openIdx + 1, 0, ...titleTokens);
-        }
-        else if (config.enableCalloutSymbolWithEmptyType === "callout-type") {
+        } else if (config.enableCalloutSymbolWithEmptyType === "callout-type") {
           // Returns the callout type as the title with the first letter capitalized.
           const title = prettyFormatCalloutType(calloutType);
           const titleTokens = createTitleTokens(
             state,
             config,
             calloutType,
-            title,
+            title
           );
           tokens.splice(openIdx + 1, 0, ...titleTokens);
         }
@@ -240,8 +233,6 @@ function createTitleTokens(
 /* Takes a string and returns the same string with the first letter capitalized.
  * Assumes that the input string is lowercase.
  */
-function prettyFormatCalloutType(calloutType: string): string
-{
+function prettyFormatCalloutType(calloutType: string): string {
   return calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
 }
-
